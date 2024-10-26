@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>生日快乐!</title>     
+    <link type="text/css" rel="stylesheet" href="./css/default.css">
+    <script type="text/javascript" src="./css/jquery.min.js"></script>
+    <script type="text/javascript" src="./css/jscex.min.js"></script>
+    <script type="text/javascript" src="./css/jscex-parser.js"></script>
+    <script type="text/javascript" src="./css/jscex-jit.js"></script>
+    <script type="text/javascript" src="./css/jscex-builderbase.min.js"></script>
+    <script type="text/javascript" src="./css/jscex-async.min.js"></script>
+    <script type="text/javascript" src="./css/jscex-async-powerpack.min.js"></script>
+    <script type="text/javascript" src="./css/functions.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./css/love.js" charset="utf-8"></script>
+    <style type="text/css">
+        #buttonContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        #editButton, #generateLinkButton {
+            background-color: #ffeb3b;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            font-size: 16px;
+            margin-left: 10px;
+        }
+        #editButton:hover, #generateLinkButton:hover {
+            background-color: #fdd835;
+        }
+        #editPanel, #linkPanel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 10001;
+        }
+        #messageInput {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        #shortLinkContainer {
+            margin-top: 10px;
+        }
+        #shortLink {
+            width: 80%;
+            padding: 5px;
+        }
+        #copyButton {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #downloadButton {
+            padding: 5px 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <audio autoplay>
+        <source src="music/love.mp3" type="audio/mp3" />
+    </audio>  
+    <div id="main">
+        <div id="wrap">
+            <div id="text">
+                <div id="code">
+                    <!-- 这里的内容将通过 JavaScript 动态填充 -->
+                </div>
+            </div>
+            <div id="clock-box">
+                <span class="STYLE1"></span>
+                <font color="#33CC00"></font>
+                <span class="STYLE1"></span>
+            </div>
+            <canvas id="canvas" width="1100" height="680"></canvas>
+        </div>
+    </div>
+    
+    <div id="buttonContainer">
+        <button id="editButton">编辑内容</button>
+        <button id="generateLinkButton">获取页面链接</button>
+    </div>
+
+    <div id="editPanel">
+        <h2>编辑祝福内容</h2>
+        <textarea id="messageInput"></textarea>
+        <button id="saveButton">保存</button>
+        <button id="cancelButton">取消</button>
+    </div>
+
+    <div id="linkPanel">
+        <h2>分享链接</h2>
+        <div id="shortLinkContainer">
+            <input type="text" id="shortLink" readonly>
+            <button id="copyButton">复制链接</button>
+            <button id="downloadButton">下载 HTML 文件</button>
+        </div>
+        <button id="closeLinkButton">关闭</button>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        console.log("Document is ready"); // 添加调试日志
+
+        // 加载保存的内容
+        var savedMessage = localStorage.getItem('birthdayMessage');
+        if (savedMessage) {
+            $('#code').html(savedMessage);
+        } else {
+            // 默认内容
+            $('#code').html(`
+                <span class="say"><h1>我希望有个如你一般的人。</h1></span><br><br>
+                <span class="say">我希望有个如你一般的人。</span><br> <br>    
+                <span class="say">如这山间清晨一般明亮清爽，</span><br><br>
+                <span class="say">如奔赴古城道路上阳光一般的人，</span><br><br>
+                <span class="say">温暖而不炙热，覆盖我所有肌肤。</span><br><br>
+                <span class="say">由起点到夜晚，由山野到书房，一切问题的答案都很简单。</span><br><br>
+                <span class="say">我希望有个如你一般的人，贯彻未来，数遍生命的公路牌。</span><br><br>
+                <span class="say"><span class="space"></span> -- 刘军涛--</span><br>
+                <span class="say"><h1>生日快乐!</h1></span><br>
+            `);
+        }
+
+        // 显示编辑面板
+        $('#editButton').click(function() {
+            console.log("Edit button clicked");
+            $('#messageInput').val($('#code').html());
+            $('#editPanel').show();
+        });
+
+        // 保存编辑内容
+        $('#saveButton').click(function() {
+            var newMessage = $('#messageInput').val();
+            $('#code').html(newMessage);
+            localStorage.setItem('birthdayMessage', newMessage);
+            $('#editPanel').hide();
+        });
+
+        // 取消编辑
+        $('#cancelButton').click(function() {
+            $('#editPanel').hide();
+        });
+
+        // 获取页面链接
+        $('#generateLinkButton').click(function() {
+            console.log("Get page link button clicked");
+            var content = encodeURIComponent($('#code').html());
+            var fullUrl = window.location.origin + window.location.pathname + '?message=' + content;
+            
+            $('#shortLink').val(fullUrl);
+            $('#linkPanel').show();
+        });
+
+        // 复制短链接
+        $('#copyButton').click(function() {
+            var shortLinkInput = document.getElementById('shortLink');
+            shortLinkInput.select();
+            shortLinkInput.setSelectionRange(0, 99999); // 适用于移动设备
+            
+            try {
+                var successful = document.execCommand('copy');
+                var msg = successful ? '链接已复制到剪贴板！' : '复制失败，请手动复制。';
+                alert(msg);
+            } catch (err) {
+                console.error('无法复制文本: ', err);
+                alert('复制失败，请手动复制。');
+            }
+        });
+
+        // 下载 HTML 文件
+        $('#downloadButton').click(function() {
+            var newMessage = $('#code').html();
+            var fullHtml = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>生日快乐!</title>
+</head>
+<body>
+    <div id="birthdayMessage">
+        ${newMessage}
+    </div>
+</body>
+</html>
+            `;
+            var blob = new Blob([fullHtml], {type: 'text/html'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'happybirthday.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // 关闭链接面板
+        $('#closeLinkButton').click(function() {
+            $('#linkPanel').hide();
+        });
+
+        // 检查URL参数并显示内容
+        var urlParams = new URLSearchParams(window.location.search);
+        var messageParam = urlParams.get('message');
+        if (messageParam) {
+            $('#code').html(decodeURIComponent(messageParam));
+        }
+
+        // 确保按钮可见
+        $('#buttonContainer').css('display', 'block');
+    });
+    </script>
+
+    <script>
+    // 原有的动画和渲染代码
+    (function(){
+        var canvas = $('#canvas');
+        
+        if (!canvas[0].getContext) {
+            $("#error").show();
+            return false;
+        }
+
+        var width = canvas.width();
+        var height = canvas.height();
+        
+        canvas.attr("width", width);
+        canvas.attr("height", height);
+
+        var opts = {
+            seed: {
+                x: width / 2 - 20,
+                color: "rgb(190, 26, 37)",
+                scale: 2
+            },
+            branch: [
+                [535, 680, 570, 250, 500, 200, 30, 100, [
+                    [540, 500, 455, 417, 340, 400, 13, 100, [
+                        [450, 435, 434, 430, 394, 395, 2, 40]
+                    ]],
+                    [550, 445, 600, 356, 680, 345, 12, 100, [
+                        [578, 400, 648, 409, 661, 426, 3, 80]
+                    ]],
+                    [539, 281, 537, 248, 534, 217, 3, 40],
+                    [546, 397, 413, 247, 328, 244, 9, 80, [
+                        [427, 286, 383, 253, 371, 205, 2, 40],
+                        [498, 345, 435, 315, 395, 330, 4, 60]
+                    ]],
+                    [546, 357, 608, 252, 678, 221, 6, 100, [
+                        [590, 293, 646, 277, 648, 271, 2, 80]
+                    ]]
+                ]] 
+            ],
+            bloom: {
+                num: 700,
+                width: 1080,
+                height: 650,
+            },
+            footer: {
+                width: 1200,
+                height: 5,
+                speed: 10,
+            }
+        }
+
+        var tree = new Tree(canvas[0], width, height, opts);
+        var seed = tree.seed;
+        var foot = tree.footer;
+        var hold = 1;
+
+        canvas.click(function(e) {
+            var offset = canvas.offset(), x, y;
+            x = e.pageX - offset.left;
+            y = e.pageY - offset.top;
+            if (seed.hover(x, y)) {
+                hold = 0; 
+                canvas.unbind("click");
+                canvas.unbind("mousemove");
+                canvas.removeClass('hand');
+            }
+        }).mousemove(function(e){
+            var offset = canvas.offset(), x, y;
+            x = e.pageX - offset.left;
+            y = e.pageY - offset.top;
+            canvas.toggleClass('hand', seed.hover(x, y));
+        });
+
+        var seedAnimate = eval(Jscex.compile("async", function () {
+            seed.draw();
+            while (hold) {
+                $await(Jscex.Async.sleep(10));
+            }
+            while (seed.canScale()) {
+                seed.scale(0.95);
+                $await(Jscex.Async.sleep(10));
+            }
+            while (seed.canMove()) {
+                seed.move(0, 2);
+                foot.draw();
+                $await(Jscex.Async.sleep(10));
+            }
+        }));
+
+        var growAnimate = eval(Jscex.compile("async", function () {
+            do {
+                tree.grow();
+                $await(Jscex.Async.sleep(10));
+            } while (tree.canGrow());
+        }));
+
+        var flowAnimate = eval(Jscex.compile("async", function () {
+            do {
+                tree.flower(2);
+                $await(Jscex.Async.sleep(10));
+            } while (tree.canFlower());
+        }));
+
+        var moveAnimate = eval(Jscex.compile("async", function () {
+            tree.snapshot("p1", 240, 0, 610, 680);
+            while (tree.move("p1", 500, 0)) {
+                foot.draw();
+                $await(Jscex.Async.sleep(10));
+            }
+            foot.draw();
+            tree.snapshot("p2", 500, 0, 610, 680);
+
+            // 会有闪烁不得意这样做, (＞﹏＜)
+            canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
+            canvas.css("background", "#ffe");
+            $await(Jscex.Async.sleep(300));
+            canvas.css("background", "none");
+        }));
+
+        var jumpAnimate = eval(Jscex.compile("async", function () {
+            var ctx = tree.ctx;
+            while (true) {
+                tree.ctx.clearRect(0, 0, width, height);
+                tree.jump();
+                foot.draw();
+                $await(Jscex.Async.sleep(25));
+            }
+        }));
+
+        var textAnimate = eval(Jscex.compile("async", function () {
+            var together = new Date();
+            together.setFullYear(2009,10,23);
+            together.setHours(16);
+            together.setMinutes(53);
+            together.setSeconds(0);
+            together.setMilliseconds(2);
+
+            $("#code").show().typewriter();
+            $("#clock-box").fadeIn(500);
+            while (true) {
+                timeElapse(together);
+                $await(Jscex.Async.sleep(1000));
+            }
+        }));
+
+        var runAsync = eval(Jscex.compile("async", function () {
+            $await(seedAnimate());
+            $await(growAnimate());
+            $await(flowAnimate());
+            $await(moveAnimate());
+
+            textAnimate().start();
+
+            $await(jumpAnimate());
+        }));
+
+        runAsync().start();
+    })();
+    </script>
+</body>
+</html>
