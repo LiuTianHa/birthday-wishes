@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跳转中...</title>
+    <script>
+        function redirect() {
+            var targetUrl = "{{ url }}";
+            var ua = navigator.userAgent.toLowerCase();
+            var isWeixin = ua.indexOf('micromessenger') != -1;
+            if (isWeixin) {
+                document.getElementById('wechat-tip').style.display = 'block';
+            } else {
+                window.location.href = targetUrl;
+            }
+        }
+    </script>
+</head>
+<body onload="redirect()">
+    <h1>正在跳转到目标网页</h1>
+    <p>如果没有自动跳转，请<a href="{{ url }}" id="redirect-link">点击这里</a>。</p>
+    <div id="wechat-tip" style="display: none;">
+        <p>请点击右上角的"..."，然后选择"在浏览器中打开"以访问链接。</p>
+    </div>
+</body>
+</html>
